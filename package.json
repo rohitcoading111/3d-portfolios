@@ -12,11 +12,13 @@
   "dependencies": {
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
+    "@sanity/client": "^8.15.1",
     "posthog-js": "^1.447.10",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "sass": "^1.108.2",
-    "three": "^0.187.0"
+    "three": "^0.187.0",
+    "vite-plugin-compression": "^0.5.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

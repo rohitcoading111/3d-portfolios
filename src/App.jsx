@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState,Suspense,useEffect,useCallback,useLayoutEffect,lazy } from 'react'
 import { Canvas,useThree,useFrame,useLoader } from '@react-three/fiber';
-import { Preload , useTextures, Text,PerformanceMonitor} from '@react-three/drei';
+import { Preload , useTextures, Text,PerformanceMonitor, usePerformanceMonitor} from '@react-three/drei';
 import * as THREE from "three";
 import posthog from "posthog-js";
 // import "./style/main.scss";
@@ -29,12 +29,88 @@ const isLowEnd = isMobileDevice || isWeakCPU || isLowRAM || isSmallScreen;
 const supportsHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
 
-const App = () => {
-  return (
-    <div>
-      <h1>home</h1>
-    </div>
-  )
+if(isLowEnd){
+  const CORE_TEXTURE = [...ENTRANCE_TEXTURES, ...CORRIDOR_TEXTURES, ...UI_TEXTURES, ...IMAGE_ASSESTS];
+  const filteredCore = filterTexturesByDevice(CORE_TEXTURE,supportsHover);
+  const filteredAbout = filterTexturesByDevice(ABOUT_TEXTURES,supportsHover);
+
+
+  filteredCore.forEach(path => useTexture.preload(path));
+  filteredAbout.forEach(path => useLoader.preload(TextureLoader, path));
+} else {
+    const filteredALL = filterTexturesByDevice(PRELOAD_ALL,supportsHover);
+    const filteredLoader = filterTexturesByDevice(PRELOAD_LOADER,supportsHover);
+
+    filteredALL.forEach(path => useTexture.preload(path));
+    filteredLoader.forEach(path => useLoader.preload(TextureLoader, path));
 }
 
-export default App
+const FONT_URL = "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2bKodukmMEVuLyfAZ9hjp-Ek-_EeA.woff";
+
+const GlobalAudioEnabler = () => {
+  const { enableAudio} = useAudio();
+  useEffect(()=>{
+     const handleUserInteraction = () => enableAudio();
+     window.addEventListener('click', handleUserInteraction, { once: true });
+     window.addEventListener('touchstart', handleUserInteraction, { once: true }); 
+     window.addEventListener('keydown', handleUserInteraction, { once: true }); 
+     return () => {
+          window.removeEventListener('click', handleUserInteraction);
+          window.removeEventListener('touchstart', handleUserInteraction); 
+          window.removeEventListener('keydown', handleUserInteraction); 
+     }
+  },[enableAudio]);
+  return null;
+}
+
+const PaperSceneBackground = () => {
+  const { scene } = useThree();
+  const texture = useTexture("/textures/paper-texture.webp");
+  useeffect(()=>{
+    texture.colorSpace = THREE.SRGBColorSpace;
+    scene.background = texture;
+
+    return()=>{
+      scene.background = null;
+    }
+  },[scene,texture])
+  return null;
+}
+
+function DocumentMwtaBridge() {
+   useDocumentMeta();
+   const { initialRoom, deeplinkHandle, hasEntered, teleportTo,markEntered } = useScene();
+   useeffect(()=> {
+    if(initialRoom && hasEntered && !deeplinkHandle.current){
+       deeplinkHandle.current = true;
+       setTimeout(()=>{
+          teleportTo(initialRoom);
+          markEntered();
+       },300);
+    }
+   },[initialRoom,hasEntered,teleportTo,deeplinkHandle])
+}
+
+
+function AppContent(){
+   const [isLoaded, setIsLoaded] = useState(false);
+   const [sceneReady, setsceneReady] = useState(false);
+
+
+   const {settings,downgradeTier, tier} = usePerformanceMonitor();
+
+   useeffect(()=> {
+     initAudio();
+   },[]);
+
+   const handleSceneReady = useCallback(()=> {
+     requestAnimationFrame(()=> {
+       setsceneReady(true);
+     })
+   },[]);
+
+   return(
+    <>
+    </>
+   )
+}
